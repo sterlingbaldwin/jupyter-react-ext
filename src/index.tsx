@@ -1,5 +1,18 @@
-import { JupyterLab, JupyterLabPlugin, ILayoutRestorer } from '@jupyterlab/application';
-import { ICommandPalette, InstanceTracker } from '@jupyterlab/apputils';
+import { 
+  JupyterLab, 
+  JupyterLabPlugin, 
+  ILayoutRestorer 
+} from '@jupyterlab/application';
+
+import { 
+  ICommandPalette, 
+  InstanceTracker,
+  showErrorMessage,
+  VDomModel,
+  VDomRenderer
+} from '@jupyterlab/apputils';
+
+import * as React from 'react'; //Added react dependency
 import { JSONExt } from '@phosphor/coreutils'
 import { Widget } from '@phosphor/widgets';
 import { Message } from '@phosphor/messaging';
@@ -51,6 +64,19 @@ class XkcdWidget extends Widget {
     });
   }
 };
+
+class Comic extends React.Component {
+
+  render() {
+    return (
+        <div class="jp-xkcdAttribution">
+          <a href="https://creativecommons.org/licenses/by-nc/2.5/" class="jp-xkcdAttribution" target="_blank">
+            <img src="https://licensebuttons.net/l/by-nc/2.5/80x15.png" />
+          </a>
+        </div>
+    )
+  }
+}
 
 /**
  * Activate the xckd widget extension.
