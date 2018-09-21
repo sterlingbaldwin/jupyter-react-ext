@@ -10,42 +10,41 @@ import {
     DocumentWidget
 } from '@jupyterlab/docregistry';
 
+import { 
+    ICommandPalette
+} from '@jupyterlab/apputils';
+
 import {
     CommandRegistry
 } from '@phosphor/commands';
 
-import { Widget } from '@phosphor/widgets';
+import { 
+    Widget 
+} from '@phosphor/widgets';
 
 const FILETYPE = 'NetCDF';
+const FACTORY_NAME = 'vcs';
 
-// import * as factories from './factories'
-
-import * as React from 'react';
-
-import * as ReactDOM from 'react-dom';
-
-import { VCSComponentLeft } from './components'
+import * as widgets from './widgets'
 
 let commands: CommandRegistry;
 
 const plugin: JupyterLabPlugin<void> = {
     id: 'jupyterlab-vcs',
     autoStart: true,
-    requires: [],
+    requires: [ICommandPalette],
     activate: activate
 };
 
-
 export default plugin;
 
-
-function activate(app: JupyterLab) {
+function activate(app: JupyterLab, palette: ICommandPalette) {
     // Declare a widget variable
     console.log('starting activate for vcs plugin');
     commands = app.commands;
 
     const factory = new NCViewerFactory({
-        name: 'vcs',
+        name: FACTORY_NAME,
         fileTypes: [FILETYPE],
         defaultFor: [FILETYPE],
         readOnly: true
@@ -66,19 +65,30 @@ function activate(app: JupyterLab) {
         console.log('NCViewerWidget created from factory');
     });
 
+    let widget: widgets.NCSetupWidget;
+    const command: string = 'vcs:open-setup';
+    app.commands.addCommand(command, {
+        label: 'VCS Setup',
+        execute: () => {
+            if(!widget){
+                widget = new widgets.NCSetupWidget();
+                widget.id = 'vcs-setup';
+                widget.title.label = 'VCS Setup';
+                widget.title.closable = true;
+            }
+            if (!widget.isAttached) {
+                // Attach the widget to the left area if it's not there
+                app.shell.addToLeftArea(widget);
+            } else {
+                widget.update();
+            }
+            // Activate the widget
+            app.shell.activateById(widget.id);
+        }
+    });
 
-    let widget = new NCSetupWidget();
-    console.log('Widget after constructor');
-    widget.update();
+    palette.addItem({ command, category: 'Visualization' });
 
-    if (!widget.isAttached) {
-        // Attach the widget to the left area if it's not there
-        app.shell.addToLeftArea(widget);
-    } else {
-        widget.update();
-    }
-    // Activate the widget
-    app.shell.activateById(widget.id);
 }
 
 export class NCViewerFactory extends ABCWidgetFactory<
@@ -110,34 +120,13 @@ export class NCViewerFactory extends ABCWidgetFactory<
     }
 }
 
-
 export class NCViewerWidget extends Widget {
     constructor(context: DocumentRegistry.Context) {
         super();
         this.context = context;
     }
 
-
     readonly context: DocumentRegistry.Context;
 
     readonly ready = Promise.resolve(void 0);
-}
-
-export class NCSetupWidget extends Widget {
-    constructor(){
-        super();
-        this.div = document.createElement('div');
-        this.div.id = 'vcs-component';
-        this.node.appendChild(this.div);
-        console.log('firing NCViewerWidget constructor');
-
-        let props = {
-            var_name: '',
-            file_path: ''
-        }
-        ReactDOM.render(
-            <VCSComponentLeft {...props} className="p-Widget p-StackedPanel" ></VCSComponentLeft>,
-            this.div)
-    }
-    div: HTMLDivElement;
 }
