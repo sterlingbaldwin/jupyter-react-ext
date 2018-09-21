@@ -102,6 +102,7 @@ export class NCViewerFactory extends ABCWidgetFactory<
     ): IDocumentWidget<NCViewerWidget> {
         const content = new NCViewerWidget(context);
         const ncWidget = new DocumentWidget({ content, context });
+        // debugger;
 
         console.log('executing command console:create');
         commands.execute('console:create', {
@@ -112,8 +113,12 @@ export class NCViewerFactory extends ABCWidgetFactory<
             consolePanel.session.ready.then(() => {
                 consolePanel.console.inject('import cdms2');
                 consolePanel.console.inject('import vcs');
+
+                let dataLoadString = 'data = cdms2.open(\'' + context.session.path + '\')';
+                consolePanel.console.inject(dataLoadString);
+                consolePanel.console.inject('clt = data("clt")');
                 consolePanel.console.inject('x=vcs.init()');
-                consolePanel.console.inject('x.plot([1,2,3,4,5,6])');
+                consolePanel.console.inject('x.plot(clt)');
             });
         });
         return ncWidget;
