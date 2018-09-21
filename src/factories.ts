@@ -5,28 +5,27 @@ import {
     DocumentWidget
 } from '@jupyterlab/docregistry';
 
-import { 
-    CommandRegistry 
+import {
+    CommandRegistry
 } from '@phosphor/commands';
 
 import * as widgets from './widgets'
 
 let commands: CommandRegistry;
 
-/**
- * A widget factory for NC widgets.
- */
 export class NCViewerFactory extends ABCWidgetFactory<
     IDocumentWidget<widgets.NCViewerWidget>
     > {
     /**
      * Create a new widget given a context.
      */
-    protected createNewWidget(context: DocumentRegistry.Context): IDocumentWidget<widgets.NCViewerWidget> {
+    protected createNewWidget(
+        context: DocumentRegistry.Context
+    ): IDocumentWidget<widgets.NCViewerWidget> {
         const content = new widgets.NCViewerWidget(context);
         const ncWidget = new DocumentWidget({ content, context });
-        debugger;
-        console.log(commands);
+
+        console.log('executing command console:create');
         commands.execute('console:create', {
             activate: true,
             path: context.path,

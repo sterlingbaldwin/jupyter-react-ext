@@ -8,9 +8,6 @@ import * as ReactDOM from 'react-dom';
 
 import { VCSComponentLeft } from './components'
 
-/**
- * A widget for NC loaders.
- */
 export class NCViewerWidget extends Widget {
     constructor(context: DocumentRegistry.Context) {
         super();
@@ -20,21 +17,17 @@ export class NCViewerWidget extends Widget {
         this.node.appendChild(this.div);
         console.log('firing NCViewerWidget constructor');
 
-        context.ready.then(() => {
-            let props = {
-                var_name: '',
-                file_path: ''
-            }
-            ReactDOM.render(
-                <VCSComponentLeft {...props} className="p-Widget p-StackedPanel" ></VCSComponentLeft>,
-                this.div)
-        });
+        let props = {
+            var_name: '',
+            file_path: ''
+        }
+        ReactDOM.render(
+            <VCSComponentLeft {...props} className="p-Widget p-StackedPanel" ></VCSComponentLeft>,
+            this.div)
     }
-    // toolbar: Toolbar;
+
     div: HTMLDivElement;
-    /**
-     * The widget's context.
-     */
+
     readonly context: DocumentRegistry.Context;
 
     readonly ready = Promise.resolve(void 0);
