@@ -1,6 +1,7 @@
 import {
     JupyterLab,
-    JupyterLabPlugin
+    JupyterLabPlugin,
+    ApplicationShell
 } from '@jupyterlab/application';
 
 import {
@@ -28,6 +29,8 @@ const FACTORY_NAME = 'vcs';
 import * as widgets from './widgets'
 
 let commands: CommandRegistry;
+let shell: ApplicationShell;
+let widget: widgets.NCSetupWidget;
 
 const plugin: JupyterLabPlugin<void> = {
     id: 'jupyterlab-vcs',
@@ -42,11 +45,13 @@ function activate(app: JupyterLab, palette: ICommandPalette) {
     // Declare a widget variable
     console.log('starting activate for vcs plugin');
     commands = app.commands;
+    shell = app.shell;
 
     const factory = new NCViewerFactory({
         name: FACTORY_NAME,
         fileTypes: [FILETYPE],
         defaultFor: [FILETYPE],
+        modelName: 'base64',
         readOnly: true
     });
 
@@ -65,9 +70,8 @@ function activate(app: JupyterLab, palette: ICommandPalette) {
         console.log('NCViewerWidget created from factory');
     });
 
-    let widget: widgets.NCSetupWidget;
     const command: string = 'vcs:open-setup';
-    app.commands.addCommand(command, {
+    commands.addCommand(command, {
         label: 'VCS Setup',
         execute: () => {
             if(!widget){
@@ -102,7 +106,22 @@ export class NCViewerFactory extends ABCWidgetFactory<
     ): IDocumentWidget<NCViewerWidget> {
         const content = new NCViewerWidget(context);
         const ncWidget = new DocumentWidget({ content, context });
-        // debugger;
+        debugger;
+        const path = context.session.path;
+        if(!widget){
+            widget = new widgets.NCSetupWidget();
+            widget.id = 'vcs-setup';
+            widget.title.label = 'vcs';
+            widget.title.closable = true;
+        }
+        if (!widget.isAttached) {
+            // Attach the widget to the left area if it's not there
+            shell.addToLeftArea(widget);
+        } else {
+            widget.update();
+        }
+        // Activate the widget
+        shell.activateById(widget.id);
 
         console.log('executing command console:create');
         commands.execute('console:create', {
@@ -113,9 +132,7 @@ export class NCViewerFactory extends ABCWidgetFactory<
             consolePanel.session.ready.then(() => {
                 consolePanel.console.inject('import cdms2');
                 consolePanel.console.inject('import vcs');
-
-                let dataLoadString = 'data = cdms2.open(\'' + context.session.path + '\')';
-                consolePanel.console.inject(dataLoadString);
+                consolePanel.console.inject(`data = cdms2.open('${path}')`);
                 consolePanel.console.inject('clt = data("clt")');
                 consolePanel.console.inject('x=vcs.init()');
                 consolePanel.console.inject('x.plot(clt)');
