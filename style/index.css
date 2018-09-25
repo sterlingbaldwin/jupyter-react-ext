@@ -1,17 +1,3 @@
-.jp-xkcdWidget {
-    display: flex;
-    flex-direction: column;
-    overflow: auto;
-}
-
-#test-component, .jp-xkcdCartoon {
-    margin: auto;
-}
-
-#test-component {
-    background-color: white;
-}
-
-.jp-xkcdAttribution {
-    margin: 20px auto;
+.jp-vcsSetupWidget {
+    padding: 1em;
 }

@@ -24,9 +24,12 @@ import {
 } from '@phosphor/widgets';
 
 const FILETYPE = 'NetCDF';
+
 const FACTORY_NAME = 'vcs';
 
-import * as widgets from './widgets'
+import * as widgets from './widgets';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '../style/index.css';
 
 let commands: CommandRegistry;
 let shell: ApplicationShell;
@@ -70,28 +73,28 @@ function activate(app: JupyterLab, palette: ICommandPalette) {
         console.log('NCViewerWidget created from factory');
     });
 
-    const command: string = 'vcs:open-setup';
-    commands.addCommand(command, {
-        label: 'VCS Setup',
-        execute: () => {
-            if(!widget){
-                widget = new widgets.NCSetupWidget();
-                widget.id = 'vcs-setup';
-                widget.title.label = 'VCS Setup';
-                widget.title.closable = true;
-            }
-            if (!widget.isAttached) {
-                // Attach the widget to the left area if it's not there
-                app.shell.addToLeftArea(widget);
-            } else {
-                widget.update();
-            }
-            // Activate the widget
-            app.shell.activateById(widget.id);
-        }
-    });
+    // let command: string = 'vcs:open-setup';
+    // commands.addCommand(command, {
+    //     label: 'VCS Setup',
+    //     execute: () => {
+    //         if(!widget){
+    //             widget = new widgets.NCSetupWidget('');
+    //             widget.id = 'vcs-setup';
+    //             widget.title.label = 'VCS Setup';
+    //             widget.title.closable = true;
+    //         }
+    //         if (!widget.isAttached) {
+    //             // Attach the widget to the left area if it's not there
+    //             app.shell.addToLeftArea(widget);
+    //         } else {
+    //             widget.update();
+    //         }
+    //         // Activate the widget
+    //         app.shell.activateById(widget.id);
+    //     }
+    // });
 
-    palette.addItem({ command, category: 'Visualization' });
+    // palette.addItem({ command, category: 'Visualization' });
 
 }
 
@@ -106,19 +109,22 @@ export class NCViewerFactory extends ABCWidgetFactory<
     ): IDocumentWidget<NCViewerWidget> {
         const content = new NCViewerWidget(context);
         const ncWidget = new DocumentWidget({ content, context });
-        debugger;
-        const path = context.session.path;
+        const path = context.session.path.split('/').slice(-1)[0];
         if(!widget){
-            widget = new widgets.NCSetupWidget();
+            widget = new widgets.NCSetupWidget(path);
             widget.id = 'vcs-setup';
             widget.title.label = 'vcs';
             widget.title.closable = true;
+            widget.addClass('jp-FileBrowser');
+            widget.addClass('jp-vcsSetupWidget');
+            widget.updatePath(path);
         }
         if (!widget.isAttached) {
             // Attach the widget to the left area if it's not there
             shell.addToLeftArea(widget);
         } else {
             widget.update();
+            widget.updatePath(path);
         }
         // Activate the widget
         shell.activateById(widget.id);
@@ -130,12 +136,8 @@ export class NCViewerFactory extends ABCWidgetFactory<
             preferredLanguage: context.model.defaultKernelLanguage
         }).then(consolePanel => {
             consolePanel.session.ready.then(() => {
-                consolePanel.console.inject('import cdms2');
-                consolePanel.console.inject('import vcs');
-                consolePanel.console.inject(`data = cdms2.open('${path}')`);
-                consolePanel.console.inject('clt = data("clt")');
-                consolePanel.console.inject('x=vcs.init()');
-                consolePanel.console.inject('x.plot(clt)');
+                widget.console = consolePanel.console;
+                widget.initConsole();
             });
         });
         return ncWidget;
