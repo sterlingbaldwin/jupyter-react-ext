@@ -34,6 +34,7 @@ import '../style/index.css';
 let commands: CommandRegistry;
 let shell: ApplicationShell;
 let widget: widgets.NCSetupWidget;
+let viewer: widgets.VCSViewerWidget;
 
 const plugin: JupyterLabPlugin<void> = {
     id: 'jupyterlab-vcs',
@@ -110,6 +111,8 @@ export class NCViewerFactory extends ABCWidgetFactory<
         const content = new NCViewerWidget(context);
         const ncWidget = new DocumentWidget({ content, context });
         const path = context.session.path.split('/').slice(-1)[0];
+
+        // setup the config widget
         if(!widget){
             widget = new widgets.NCSetupWidget(path);
             widget.id = 'vcs-setup';
@@ -126,8 +129,23 @@ export class NCViewerFactory extends ABCWidgetFactory<
             widget.update();
             widget.updatePath(path);
         }
-        // Activate the widget
+        // setup the viewer widget
+        if(!viewer){
+            viewer = new widgets.VCSViewerWidget();
+            viewer.id = 'vcs-viewer';
+            viewer.title.label = 'vcs-viewer';
+            viewer.title.closable = true;
+        }
+        if(!viewer.isAttached) {
+            shell.addToRightArea(viewer);
+        } else {
+            viewer.update();
+        }
+
+
+        // Activate the widgets
         shell.activateById(widget.id);
+        shell.activateById(viewer.id);
 
         console.log('executing command console:create');
         commands.execute('console:create', {

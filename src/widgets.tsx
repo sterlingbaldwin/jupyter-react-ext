@@ -4,14 +4,15 @@ import * as React from 'react';
 
 import * as ReactDOM from 'react-dom';
 
-import { VCSComponentLeft } from './components'
+import { VCSConfig } from './components/vcs_config';
+import { VCSViewer } from './components/vcs_viewer';
 
 
 export class NCSetupWidget extends Widget {
     constructor(file_path: string) {
         super();
         this.div = document.createElement('div');
-        this.div.id = 'vcs-component';
+        this.div.id = 'vcs-config';
         this.div.className = 'jp-vcsSetupWidget';
         this.node.appendChild(this.div);
         
@@ -32,10 +33,10 @@ export class NCSetupWidget extends Widget {
             plot: this.plot,
             selectVariable: this.selectVariable,
             selectGm: this.selectGm,
-            clear: this.clear
+            clear: this.clear,
         };
         this.component = ReactDOM.render(
-            <VCSComponentLeft {...props} />,
+            <VCSConfig {...props} />,
             this.div)
     }
     updatePath(new_path: string) {
@@ -91,4 +92,21 @@ export class NCSetupWidget extends Widget {
     selected_variable: string;
     selected_gm: string;
     dirty: boolean;
+}
+
+export class VCSViewerWidget extends Widget {
+    constructor(){
+        super();
+        this.div = document.createElement('div');
+        this.div.id = 'jp-vcs-viewer';
+        this.node.appendChild(this.div);
+
+        let props = {}
+        this.component = ReactDOM.render(
+            <VCSViewer {...props}/>,
+            this.div);
+    }
+    component: any;
+    div: HTMLDivElement;
+    vcs: any;
 }

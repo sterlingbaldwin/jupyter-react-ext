@@ -1,11 +1,17 @@
-import * as React from 'react';
+import * as $ from 'jquery';
 
-// import { Dropdown, DropdownToggle, DropdownMenu } from 'reactstrap';
-// import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from 'reactstrap';
+import * as React from 'react';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-export class VCSComponentLeft extends React.Component<any, any> {
+import '../../style/vcs_config.css';
+
+import { base_url, vcs_port } from '../constants';
+
+// the global vcs object loaded from the visualization server
+declare var vcs: any;
+
+export class VCSConfig extends React.Component<any, any> {
 
     constructor(props: any) {
         super(props);
@@ -19,8 +25,9 @@ export class VCSComponentLeft extends React.Component<any, any> {
             vars: [],
             gms: ['isofill', 'boxfill', 'meshfill']
         };
+        this.vcs = this.props.vcs;
+
         this.props = props;
-        this.base_url = '/vcs';
         this.dropDownOpen = false;
 
         this.selectVariable = this.selectVariable.bind(this);
@@ -31,13 +38,17 @@ export class VCSComponentLeft extends React.Component<any, any> {
         this.callApi = this.callApi.bind(this);
         this.toggleDropdown = this.toggleDropdown.bind(this);
         this.auto = this.auto.bind(this);
+        this.handleScriptLoad = this.handleScriptLoad.bind(this);
     }
     base_url: string;
     dropDownOpen: boolean;
+    vcs: any;
+    canvas: any;
 
     componentDidMount() {
+        // get variable information from the backend
         console.log('mounted VCSComponentLeft');
-        let url = this.base_url + `/get_vars?file_path=${this.state.file_path}`;
+        let url = base_url + `/get_vars?file_path=${this.state.file_path}`;
         console.log(`sending request to ${url}`);
         this.callApi(url).then(res => {
             console.log('got vars ' + res.variables);
@@ -47,6 +58,20 @@ export class VCSComponentLeft extends React.Component<any, any> {
         }).catch(err => {
             console.log(err);
         });
+
+        // setup the global vcs.js object
+        let script = document.createElement('script');
+        script.src = `http://localhost:${vcs_port}/vcs.js`;
+        script.async = true;
+        script.addEventListener('load', this.handleScriptLoad);
+        document.body.appendChild(script);
+        debugger;
+    }
+    handleScriptLoad(){
+        console.log('vcs.js load complete');
+        debugger;
+        let vcs_target = $('#vcs-viewer-main-div')[0];
+        this.canvas = vcs.init(vcs_target);
     }
 
     plot(){
@@ -66,7 +91,14 @@ export class VCSComponentLeft extends React.Component<any, any> {
             })
         }
     }
-
+    /**
+     * Make a backend API call, and decode the json response
+     * 
+     * Parameters:
+     *  url: string, the url to send the request to, with parameters encoded
+     * Returns:
+     *  Promise -> json decoding promise
+     */
     callApi = async (url: string) => {
         const response = await fetch(url);
         const body = await response.json();
@@ -105,11 +137,11 @@ export class VCSComponentLeft extends React.Component<any, any> {
         this.props.plot();
     }
     render() {
-        let style = {
-            padding: '1em'
-        };
+        // let style = {
+        //     padding: '1em'
+        // };
         return (
-            <div style={style}>
+            <div /*style={style}*/ className="jp-vcsConfig">
                 <h1>vcs config</h1>
                 <p>selected file: {this.state.file_path}</p>
                 
@@ -117,7 +149,10 @@ export class VCSComponentLeft extends React.Component<any, any> {
                     <p>selected variable: {this.state.selected_var}</p>
                     <ul>
                         {this.state.vars.map((item: string) => {
-                            return <li><button onClick={this.selectVariable}>{item}</button></li>
+                            return (
+                                <li key={item}>
+                                    <button onClick={this.selectVariable}>{item}</button>
+                                </li>);
                         })}
                     </ul>
                 </div>
@@ -125,7 +160,10 @@ export class VCSComponentLeft extends React.Component<any, any> {
                     <p>graphics method: {this.state.graphicsmethod}</p>
                     <ul>
                         {this.state.gms.map((item: string) => {
-                            return <li><button onClick={this.selectGraphicsMethod}>{item}</button></li>
+                            return (
+                                <li key={item}>
+                                    <button onClick={this.selectGraphicsMethod}>{item}</button>
+                                </li>);
                         })}
                     </ul>
                 </div>
@@ -133,6 +171,7 @@ export class VCSComponentLeft extends React.Component<any, any> {
                 <button onClick={this.plot}>plot</button>
                 <button onClick={this.clear}>clear</button>
                 <button onClick={this.auto}>auto</button>
+                <button onClick={() => {debugger}}> vcs </button>
             </div>
         )
     }
